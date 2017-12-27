@@ -5,6 +5,17 @@ import ssl
 
 
 reportDynamic=[
+"acc-summary",
+"custom-dynamic-report",
+"top-app-summary",
+"top-application-categories-summary",
+"top-application-risk-summary",
+"top-application-subcategories-summary",
+"top-application-tech-summary",
+"top-applications-summary",
+"top-applications-trsum",
+"top-attacker-countries-summary",
+"top-attackers-summary",
 "top-attackers-summary",
 "top-attacks-acc",
 "top-blocked-url-categories-summary",
@@ -229,5 +240,183 @@ def getXML_Top_Attack_summary_FROM_URL(link):
                         print ("\n")
 
 
+#open - read - write database into Notepad
+# syntax: 
+#   num1 = {field1, field2, field3}
+def openFile(pathFile,typeOpen):
+    fileOP= open(pathFile,typeOpen)
+    return fileOP
 
-getXML_Top_Attack_summary_FROM_URL(link)
+
+
+
+
+
+
+
+######## main chinh ################
+# khai báo link Predefined
+
+link_top_vulnerabilities=link_Predefine + token_Account + "&reportname=top-vulnerabilities"
+link_top_applications=link_Predefine + token_Account +"&reportname=top-applications"
+link_top_blocked_url_categories= link_Predefine + token_Account +"&reportname=top-blocked-url-categories"
+link_top_blocked_websites=link_Predefine + token_Account +"&reportname=top-blocked-websites"
+link_top_blocked_url_users=link_Predefine + token_Account + "&reportname=top-blocked-url-users"
+link_top_http_applications= link_Predefine + token_Account + "&reportname=top-http-applications"
+link_top_websites = link_Predefine + token_Account+ "&reportname=top-websites"
+
+
+
+# khai báo link Dynamic
+
+link_top_vulnerabilities_summary=link_Dynamic + token_Account + "&reportname=top-vulnerabilities-summary"
+link_top_threats_type_summary=link_Dynamic + token_Account + "&reportname=top-threats-type-summary"
+link_top_attacks_acc=link_Dynamic + token_Account + "&reportname=top-attacks-acc"
+link_top_url_summary=link_Dynamic + token_Account +"&reportname=top-url-summary"
+link_top_applications_summary=link_Dynamic + token_Account +"&reportname=top-applications-summary"
+link_top_blocked_url_summary=link_Dynamic + token_Account +"&reportname=top-blocked-url-summary"
+
+
+# khai báo link Custom
+link_threat_report_detail_1Day=link_custom+ token_Account +"&reportname=Threat_report_detail_1Day"
+
+
+
+#get XML for Dynamic
+def read_XML_Dynamic(linkRP,dataFile,typeOpen):
+
+    print ("Starting get Data XML from: \n\n%s\n\n" % linkRP)
+
+    fp = urllib.request.urlopen(linkRP,context=context)
+    mybytes = fp.read()
+    mystr = mybytes.decode("utf8")
+    fp.close()
+    root=ET.fromstring(mystr)
+
+    i =0
+    file= openFile(dataFile,typeOpen)
+
+    print ("root is: \n",root.tag, root.attrib)
+    for child in root:
+        print ("child is: \n", child.tag, child.attrib,"\n")
+        if child.tag == "report":
+            for first_child in child:
+                print ("first_child is: \n",first_child.tag,first_child.attrib,"\n")
+                # lay gia tri : step_child.get("name") ==> Top Attackers
+                if first_child.tag == "result":
+                    for second_child in first_child:
+                        i = i+ 1
+                        #print (second_child.tag,second_child.attrib)
+                        if second_child.tag =="entry":
+                            dataTemp=""
+                            temp=0
+                            for third_child in second_child:
+                                if temp == 0:
+                                    dataTemp=third_child.text
+                                    temp=1
+                                else:
+                                    dataTemp=dataTemp + "," +  third_child.text
+                                #print (third_child.tag,third_child.text)
+                            dataWrite= "num%i{%s}" % (i,dataTemp )
+                            print ("Writing into File: %s" % dataFile)
+                            file.write(dataWrite + "\n")
+                            print (dataWrite)
+                            print ("\n")
+                print ("So luong Entry: %i" % i)
+                file.close()
+
+
+#get XML for Predefine
+def read_XML_Predefine(linkRP,dataFile,typeOpen):
+
+    print ("Starting get Data XML from: \n\n%s\n\n" % linkRP)
+
+    fp = urllib.request.urlopen(linkRP,context=context)
+    mybytes = fp.read()
+    mystr = mybytes.decode("utf8")
+    fp.close()
+    root=ET.fromstring(mystr)
+
+    i =0
+    file= openFile(dataFile,typeOpen)
+
+    print ("root is: \n",root.tag, root.attrib)
+    for child in root:
+        print ("child is: \n", child.tag, child.attrib,"\n")
+        if child.tag == "result":
+            for first_child in child:
+                print ("first_child is: \n",first_child.tag,first_child.attrib,"\n")
+                # lay gia tri : step_child.get("name") ==> Top Attackers
+                if first_child.tag == "entry":
+                    i = i+ 1
+                    dataTemp=""
+                    temp=0
+                    for second_child in first_child:
+                        if temp == 0:
+                            dataTemp=second_child.text
+                            temp=1
+                        else:
+                            dataTemp=dataTemp + "," +  second_child.text
+                                #print (third_child.tag,third_child.text)
+                                
+                    dataWrite= "num%i{%s}" % (i,dataTemp )
+                    print ("Writing into File: %s" % dataFile)
+                    file.write(dataWrite + "\n")
+                    print (dataWrite)
+                    print ("\n")
+        print ("So luong Entry: %i" % i)
+        file.close()
+
+#get XML for Custom
+
+def read_XML_Custom(linkRP,dataFile,typeOpen):
+    fp = urllib.request.urlopen(link,context=context)
+    mybytes = fp.read()
+    mystr = mybytes.decode("utf8")
+    fp.close()
+    root=ET.fromstring(mystr)
+    print (root.tag, root.attrib)
+    i =0
+    file= openFile(dataFile,typeOpen)
+    for child in root:
+        print (child.tag, child.attrib,"\n")
+        if child.tag == "report":
+            for first_child in child:
+                print (first_child.tag, first_child.attrib,"\n")
+                # lay gia tri : step_child.get("name") ==> Top Attackers
+                if first_child.tag == "result":
+                    for second_child in first_child:
+                        i = i+ 1
+                        #print (second_child.tag,second_child.attrib)
+                        if second_child.tag =="entry":
+                            dataTemp=""
+                            temp=0
+                            for third_child in second_child:
+                                if temp == 0:
+                                    dataTemp=third_child.text
+                                    temp=1
+                                else:
+                                    dataTemp=dataTemp + "," +  str(third_child.text)
+                                #print (third_child.tag,third_child.text)
+                            dataWrite= "num%i{%s}" % (i,dataTemp )
+                            print ("Writing into File: %s" % dataWrite)
+                            file.write(dataWrite + "\n")
+                            print (dataWrite)
+                            print ("\n")
+                print ("So luong Entry: %i" % i)
+                file.close()
+
+
+
+
+###### _____int________ main
+
+read_XML_Dynamic(link_top_vulnerabilities_summary+"&period=" + periodTime[5],"top_vulnerabilities_summary.txt","w")
+read_XML_Dynamic(link_top_threats_type_summary+"&period=" + periodTime[6],"top_threats_type_summary.txt","w")
+read_XML_Dynamic(link_top_attacks_acc +"&period=" + periodTime[3],"top_attacks_acc.txt","w")
+read_XML_Dynamic(link_top_applications_summary +"&period=" + periodTime[5],"top_applications_summary.txt","w")
+read_XML_Dynamic(link_top_blocked_url_summary+"&period=" + periodTime[5],"top_blocked_url_summary.txt","w")
+
+read_XML_Predefine(link_top_websites,"top_websites.txt","w")
+
+read_XML_Custom(link_threat_report_detail_1Day,"threat_report_detail_1Day.txt","w")
